@@ -28,5 +28,6 @@ pnpm -C apps/cli build              # bundle to dist/synch.js
 ```
 
 `dist/synch.js` is a single self-contained ESM bundle with a Node shebang and
-the executable bit set, so it can be linked or copied directly. The bundle
-inlines the vendored engine; `chokidar` is the only runtime dependency.
+the executable bit set, so it can be installed, linked, or copied directly. The
+bundle inlines the vendored engine and `chokidar`; nothing else is needed at
+runtime (`chokidar` stays declared as a dependency for `pnpm dev`/`tsx` runs).
