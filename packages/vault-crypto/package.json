@@ -1,0 +1,21 @@
+{
+  "name": "@synch/vault-crypto",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./*": "./src/*.ts"
+  },
+  "scripts": {
+    "test": "vitest --config vitest.config.mts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "hash-wasm": "^4.12.0"
+  },
+  "devDependencies": {
+    "vitest": "4.1.4",
+    "typescript": "^5.9.3"
+  }
+}
