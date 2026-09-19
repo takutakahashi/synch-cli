@@ -17,7 +17,9 @@ synch watch --vault ./notes                  # keep running until Ctrl+C
   non-overlapping Markdown edits and preserving overlapping ones as conflict
   copies.
 - **Watch** — `synch watch` runs a file watcher plus a realtime connection so
-  both local and remote changes converge while it runs.
+  both local and remote changes converge while it runs, and
+  `--on-change <script>` runs your Node/TypeScript (or any executable) hook on
+  every detected change.
 
 ## Requirements
 
@@ -57,8 +59,50 @@ Uninstall with `npm uninstall -g synch-cli`.
 | `synch vault disconnect [--json]` | Forget the remote vault bound to this directory. |
 | `synch pull` | Download remote changes; never uploads local changes. |
 | `synch sync` | Reconcile, upload, and download once, then exit. |
-| `synch watch` | Keep syncing (file watcher + realtime) until interrupted. |
+| `synch watch` | Keep syncing (file watcher + realtime) until interrupted; `--on-change` runs a script per detected change. |
 | `synch status [--json]` | Show account, vault, and local sync state. |
+
+### Run a script on changes (`watch`)
+
+`synch watch --on-change <script>` runs a script whenever a sync pass changes
+files in the vault, whether the change came from this machine or from another
+device:
+
+```sh
+synch watch --vault ./notes --on-change ./examples/on-change.mjs
+```
+
+The script runs with the CLI's own Node binary, so `.js`, `.mjs`, and (on
+Node 22.6+) `.ts` hooks work without extra tooling; see
+[`examples/on-change.ts`](examples/on-change.ts). Any other path is executed
+directly, so shell scripts and compiled binaries work too.
+
+The event arrives as JSON on stdin, and its highlights are mirrored in the
+environment (`SYNCH_EVENT`, `SYNCH_VAULT`, `SYNCH_API_URL`,
+`SYNCH_CHANGED_FILES`). The working directory is the vault:
+
+```json
+{
+  "event": "vault.changed",
+  "vault": "/home/me/notes",
+  "apiBaseUrl": "https://api.synch.run",
+  "detectedAt": "2026-09-19T03:00:00.000Z",
+  "changes": [
+    { "path": "notes/daily.md", "kind": "created" },
+    { "path": "notes/old.md", "kind": "deleted" }
+  ]
+}
+```
+
+- Only paths that Synch syncs are reported (`.obsidian/`, `.synch/`, and other
+  excluded paths are ignored).
+- The first sync of a watch run is reported too, so an empty directory being
+  materialized from the server triggers the hook.
+- Hook stdout/stderr stream to the terminal. A non-zero exit or a timeout is
+  logged and the watch loop keeps running; the default timeout is 60s
+  (`--on-change-timeout 0` disables it).
+- Runs are serialized and coalesced: changes detected while a hook is still
+  running are merged into the next run.
 
 ### Options
 
@@ -69,6 +113,8 @@ Uninstall with `npm uninstall -g synch-cli`.
 | `--name <name>` | Remote vault name, for `vault create`. |
 | `--api-url <url>` | API server URL, or `SYNCH_API_URL`. |
 | `--json` | Machine-readable output for `status`, `vault list`, `vault disconnect`. |
+| `--on-change <file>` | Script to run when `watch` detects changes. |
+| `--on-change-timeout <ms>` | Kill the script after this delay (default 60000, 0 = never). |
 | `-h`, `--help` | Show help. |
 | `-v`, `--version` | Show the CLI version. |
 

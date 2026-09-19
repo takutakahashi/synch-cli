@@ -1,3 +1,5 @@
+import fs from "node:fs";
+import path from "node:path";
 import { parseArgs } from "node:util";
 
 import { resolveApiBaseUrl } from "../config";
@@ -8,6 +10,8 @@ export const CLI_OPTIONS = {
   "vault-id": { type: "string" },
   name: { type: "string" },
   "api-url": { type: "string" },
+  "on-change": { type: "string" },
+  "on-change-timeout": { type: "string" },
   json: { type: "boolean" },
   help: { type: "boolean", short: "h" },
   version: { type: "boolean", short: "v" },
@@ -88,4 +92,56 @@ export function resolveApiBaseUrlOrUsageError(
   } catch (error) {
     throw new CliUsageError(describeError(error));
   }
+}
+
+export const DEFAULT_ON_CHANGE_TIMEOUT_MS = 60_000;
+
+export interface OnChangeOptions {
+  /** Absolute path to the script or executable to run. */
+  spec: string;
+  /** Milliseconds before the script is killed; 0 disables the timeout. */
+  timeoutMs: number;
+}
+
+/**
+ * Validates the `--on-change` options. The hook only makes sense while
+ * watching, so using it elsewhere is reported as a usage error instead of
+ * being ignored.
+ */
+export function resolveOnChangeOptions(
+  command: CliCommand,
+  values: { "on-change"?: string; "on-change-timeout"?: string },
+): OnChangeOptions | null {
+  const spec = values["on-change"]?.trim();
+  const timeoutRaw = values["on-change-timeout"]?.trim();
+
+  if (!spec) {
+    if (timeoutRaw) {
+      throw new CliUsageError("--on-change-timeout requires --on-change.");
+    }
+    return null;
+  }
+
+  if (command !== "watch") {
+    throw new CliUsageError(
+      "--on-change is only supported by `synch watch`.",
+    );
+  }
+
+  const resolved = path.resolve(spec);
+  if (!fs.statSync(resolved, { throwIfNoEntry: false })?.isFile()) {
+    throw new CliUsageError(`--on-change script not found: ${spec}`);
+  }
+
+  let timeoutMs = DEFAULT_ON_CHANGE_TIMEOUT_MS;
+  if (timeoutRaw) {
+    if (!/^\d+$/.test(timeoutRaw)) {
+      throw new CliUsageError(
+        "--on-change-timeout must be a non-negative integer (milliseconds).",
+      );
+    }
+    timeoutMs = Number(timeoutRaw);
+  }
+
+  return { spec: resolved, timeoutMs };
 }
