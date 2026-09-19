@@ -26,20 +26,24 @@ synch watch --vault ./notes                  # keep running until Ctrl+C
 
 ## Install
 
-Build the self-contained bundle from source:
+Build the bundle and install the `synch` command:
 
 ```sh
 pnpm install
 pnpm build
-./apps/cli/dist/synch.js --help
-```
-
-To put a `synch` command on your `PATH`, link the workspace package globally:
-
-```sh
-pnpm -C apps/cli link --global
+npm install -g ./apps/cli   # puts `synch` on your PATH
 synch status
 ```
+
+`dist/synch.js` is self-contained (the engine and watcher are inlined), so the
+bundle can also be run or copied without installing:
+
+```sh
+./apps/cli/dist/synch.js --help
+install -m 0755 apps/cli/dist/synch.js ~/.local/bin/synch
+```
+
+Uninstall with `npm uninstall -g synch-cli`.
 
 ## Commands
 
