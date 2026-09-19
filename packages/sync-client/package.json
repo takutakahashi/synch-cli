@@ -1,0 +1,32 @@
+{
+  "name": "@synch/sync-client",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./auth": "./src/auth.ts",
+    "./billing": "./src/billing.ts",
+    "./core": "./src/core.ts",
+    "./diagnostics": "./src/diagnostics.ts",
+    "./engine": "./src/engine.ts",
+    "./http": "./src/http.ts",
+    "./remote": "./src/remote.ts",
+    "./store": "./src/store.ts",
+    "./store/entry-record": "./src/sync/store/entry-record.ts",
+    "./testing": "./src/testing.ts",
+    "./vault": "./src/vault.ts"
+  },
+  "scripts": {
+    "test": "vitest --config vitest.config.mts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@synch/vault-crypto": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^25.6.0",
+    "vitest": "4.1.4",
+    "typescript": "^5.9.3"
+  }
+}
