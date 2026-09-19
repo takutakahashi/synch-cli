@@ -1,0 +1,19 @@
+{
+  "name": "synch-cli",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Standalone CLI for Synch, the end-to-end encrypted Obsidian vault sync service.",
+  "license": "MIT",
+  "packageManager": "pnpm@10.33.0",
+  "engines": {
+    "node": ">=22.5"
+  },
+  "scripts": {
+    "build": "pnpm -C apps/cli build",
+    "test": "pnpm -r --if-present test",
+    "typecheck": "pnpm -r --if-present typecheck"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3"
+  }
+}

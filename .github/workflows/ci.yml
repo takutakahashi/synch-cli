@@ -1,0 +1,37 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.33.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm typecheck
+      - run: pnpm test
+      - run: pnpm build
+      - name: Smoke test the built CLI
+        run: |
+          ./apps/cli/dist/synch.js --version
+          ./apps/cli/dist/synch.js --help > /dev/null
+          ./apps/cli/dist/synch.js status --json | node -e "
+            let raw = '';
+            process.stdin.on('data', (chunk) => (raw += chunk));
+            process.stdin.on('end', () => {
+              const parsed = JSON.parse(raw);
+              if (parsed.account.state !== 'not_signed_in') {
+                throw new Error('unexpected account state: ' + raw);
+              }
+            });
+          "

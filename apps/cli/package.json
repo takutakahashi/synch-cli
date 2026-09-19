@@ -1,0 +1,34 @@
+{
+  "name": "synch-cli",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Headless end-to-end encrypted sync CLI for Synch vaults.",
+  "type": "module",
+  "bin": {
+    "synch": "./dist/synch.js"
+  },
+  "engines": {
+    "node": ">=22.5"
+  },
+  "scripts": {
+    "dev": "tsx src/main.ts",
+    "build": "tsc --noEmit && node esbuild.config.mjs",
+    "test": "vitest --config vitest.config.mts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "chokidar": "^5.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "esbuild": "^0.28.0",
+    "tsx": "^4.21.0",
+    "vitest": "4.1.4",
+    "typescript": "^5.9.3",
+    "@synch/sync-client": "workspace:*"
+  },
+  "license": "MIT",
+  "files": [
+    "dist"
+  ]
+}
