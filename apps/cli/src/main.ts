@@ -3,6 +3,7 @@ import {
   parseCliArgs,
   resolveApiBaseUrlOrUsageError,
   resolveCommand,
+  resolveOnChangeOptions,
 } from "./app/cli-args";
 import { runLogin } from "./commands/login";
 import { runLogout } from "./commands/logout";
@@ -28,7 +29,7 @@ Usage:
   synch vault disconnect [--json]             Forget the remote vault for this directory
   synch pull                                  Download remote changes without uploading local changes
   synch sync                                  Synchronize the vault once and exit
-  synch watch                                 Keep the vault in sync until interrupted
+  synch watch [--on-change <script>]          Keep the vault in sync until interrupted
   synch status [--json]                       Show account, vault, and sync state
 
 Options:
@@ -37,6 +38,8 @@ Options:
   --name <name>       Remote vault name (for \`vault create\`)
   --api-url <url>     API server URL (or SYNCH_API_URL)
   --json              Machine-readable output where supported
+  --on-change <file>  Script to run (watch only) after vault changes
+  --on-change-timeout <ms>  Kill the script after this delay (default 60000, 0 = never)
   -h, --help          Show this help
   -v, --version       Show version
 
@@ -59,6 +62,8 @@ async function main(argv: string[]): Promise<number> {
     process.stdout.write(HELP_TEXT);
     return values.help || positionals.length === 0 ? 0 : 2;
   }
+
+  const onChange = resolveOnChangeOptions(command, values);
 
   const ctx = new CliAppContext({
     vaultPath: resolveVaultPath(values.vault),
@@ -84,7 +89,7 @@ async function main(argv: string[]): Promise<number> {
       case "sync":
         return await runSync(ctx);
       case "watch":
-        return await runWatch(ctx);
+        return await runWatch(ctx, { onChange });
       case "status":
         return await runStatus(ctx, values.json === true);
     }
