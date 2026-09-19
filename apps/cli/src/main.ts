@@ -1,5 +1,9 @@
 import { CliAppContext, CliUsageError, describeError } from "./app/context";
-import { parseCliArgs, resolveCommand } from "./app/cli-args";
+import {
+  parseCliArgs,
+  resolveApiBaseUrlOrUsageError,
+  resolveCommand,
+} from "./app/cli-args";
 import { runLogin } from "./commands/login";
 import { runLogout } from "./commands/logout";
 import { runPull } from "./commands/pull";
@@ -10,7 +14,7 @@ import { runVaultCreate } from "./commands/vault-create";
 import { runVaultDisconnect } from "./commands/vault-disconnect";
 import { runVaultList } from "./commands/vault-list";
 import { runWatch } from "./commands/watch";
-import { CLI_VERSION, resolveApiBaseUrl } from "./config";
+import { CLI_VERSION } from "./config";
 import { resolveVaultPath } from "./host/paths";
 
 const HELP_TEXT = `synch ${CLI_VERSION} - end-to-end encrypted vault sync
@@ -58,7 +62,7 @@ async function main(argv: string[]): Promise<number> {
 
   const ctx = new CliAppContext({
     vaultPath: resolveVaultPath(values.vault),
-    apiBaseUrl: resolveApiBaseUrl(values["api-url"]),
+    apiBaseUrl: resolveApiBaseUrlOrUsageError(values["api-url"]),
   });
 
   try {

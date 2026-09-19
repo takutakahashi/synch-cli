@@ -80,6 +80,28 @@ synch status
 keeps the password out of shell history and process arguments. Prefer an
 interactive prompt when a human is present.
 
+## Self-hosted servers
+
+The CLI never assumes Synch Cloud. Point it at any Synch deployment with
+`--api-url` or `SYNCH_API_URL`:
+
+```sh
+synch login --api-url https://synch.example.com
+synch vault connect --vault-id <id> --api-url https://synch.example.com
+SYNCH_API_URL=https://synch.example.com synch watch --vault ./notes
+```
+
+The base URL is used for every request (sign-in, vault listing, sync tokens,
+blobs), and the realtime socket is derived from it: `https://` becomes
+`wss://` and `http://` becomes `ws://`. The API and socket endpoints must be
+reachable from the machine running the CLI. Upstream deployment guides:
+[Cloudflare](https://synch.run/self-hosting) and
+[Docker/systemd](https://synch.run/self-hosting-docker).
+
+`--api-url` on `login`/`vault connect` selects the server; later commands must
+use the same URL, either as a flag or through `SYNCH_API_URL`. With a private
+CA, point `NODE_EXTRA_CA_CERTS` at the CA bundle.
+
 ## Local state
 
 Everything the CLI writes stays inside the target directory and the user config
@@ -90,7 +112,9 @@ directory:
 - `<vault>/.synch/cli.lock` — per-vault process lock with stale-lock recovery,
   so two commands cannot corrupt one store.
 - `~/.config/synch/credentials.json` (XDG-aware, mode `0600`) — session token
-  and per-vault remote vault keys, keyed by absolute vault path.
+  and per-vault remote vault keys, keyed by absolute vault path. Credentials
+  are scoped per API server, so a token or vault key issued by one deployment is
+  never sent to another.
 
 Vault keys are unwrapped locally from the password and stored outside the vault.
 The server only ever receives encrypted blobs and encrypted metadata.

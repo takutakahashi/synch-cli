@@ -12,7 +12,7 @@ export async function runLogout(ctx: CliAppContext): Promise<number> {
   }
 
   ctx.remoteVaultManager.clearSession();
-  await ctx.credentials.clearAllVaultCredentials();
-  ctx.logger.log("Cleared stored vault keys.");
+  await ctx.credentials.clearServerCredentials();
+  ctx.logger.log(`Cleared stored credentials for ${ctx.apiBaseUrl}.`);
   return 0;
 }

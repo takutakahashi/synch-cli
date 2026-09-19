@@ -1,7 +1,11 @@
 import { describe, expect, it } from "vitest";
 
 import { CliUsageError } from "./context";
-import { parseCliArgs, resolveCommand } from "./cli-args";
+import {
+  parseCliArgs,
+  resolveApiBaseUrlOrUsageError,
+  resolveCommand,
+} from "./cli-args";
 
 describe("resolveCommand", () => {
   it("maps each top-level command", () => {
@@ -49,5 +53,14 @@ describe("parseCliArgs", () => {
 
   it("turns unknown flags into usage errors", () => {
     expect(() => parseCliArgs(["sync", "--nope"])).toThrow(CliUsageError);
+  });
+
+  it("turns a malformed --api-url into a usage error", () => {
+    expect(() => resolveApiBaseUrlOrUsageError("ftp://nope")).toThrow(
+      CliUsageError,
+    );
+    expect(resolveApiBaseUrlOrUsageError("https://synch.example.com")).toBe(
+      "https://synch.example.com",
+    );
   });
 });

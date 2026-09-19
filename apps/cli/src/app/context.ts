@@ -78,6 +78,7 @@ export class CliAppContext {
     this.logger = options.logger ?? consoleLogger;
     this.credentials = new CliCredentialsStore(
       options.credentialsPath ?? cliCredentialsPath(),
+      this.options.apiBaseUrl,
     );
 
     this.authManager = new AuthManager({

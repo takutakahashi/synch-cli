@@ -1,5 +1,6 @@
 import { parseArgs } from "node:util";
 
+import { resolveApiBaseUrl } from "../config";
 import { CliUsageError, describeError } from "./context";
 
 export const CLI_OPTIONS = {
@@ -75,5 +76,16 @@ export function resolveCommand(positionals: string[]): CliCommand | null {
       }
     default:
       return null;
+  }
+}
+
+/** A malformed `--api-url` is a usage error (exit code 2), not a crash. */
+export function resolveApiBaseUrlOrUsageError(
+  flagValue: string | undefined,
+): string {
+  try {
+    return resolveApiBaseUrl(flagValue);
+  } catch (error) {
+    throw new CliUsageError(describeError(error));
   }
 }
