@@ -50,7 +50,16 @@ Uninstall with `npm uninstall -g synch-cli`.
 
 ### Container image
 
-Build the production image locally:
+Images are published to GitHub Container Registry on every `main` build and
+version tag:
+
+```sh
+docker pull ghcr.io/takutakahashi/synch-cli:latest
+```
+
+Available tags include `latest`, `sha-<commit>`, and semantic versions for
+Git tags such as `v1.2.3`. Published manifests support `linux/amd64` and
+`linux/arm64`. To build the production image locally instead:
 
 ```sh
 docker build -t synch-cli .
