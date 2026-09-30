@@ -10,6 +10,7 @@ synch login                                  # device-code sign-in
 synch vault create --name notes --vault ./notes
 synch sync --vault ./notes                   # one-shot, both directions
 synch watch --vault ./notes                  # keep running until Ctrl+C
+synch mcp --vault ./notes                    # expose notes to MCP clients over HTTP
 ```
 
 - **Read** — `synch pull` downloads remote changes and never uploads.
@@ -47,6 +48,60 @@ install -m 0755 apps/cli/dist/synch.js ~/.local/bin/synch
 
 Uninstall with `npm uninstall -g synch-cli`.
 
+### Container image
+
+Images are published to GitHub Container Registry on every `main` build and
+version tag:
+
+```sh
+docker pull ghcr.io/takutakahashi/synch-cli:latest
+```
+
+Available tags include `latest`, `sha-<commit>`, and semantic versions for
+Git tags such as `v1.2.3`. Published manifests support `linux/amd64` and
+`linux/arm64`. To build the production image locally instead:
+
+```sh
+docker build -t synch-cli .
+```
+
+The image runs as a non-root user, stores both the local vault and credentials
+under `/data`, and starts the remote MCP server on port 3000 by default. First,
+initialize a named volume against the same Synch server the MCP process will
+use:
+
+```sh
+docker volume create synch-data
+
+docker run --rm -it \
+  -v synch-data:/data \
+  synch-cli login --api-url https://synch.example.com
+
+docker run --rm -it \
+  -v synch-data:/data \
+  -e SYNCH_VAULT_PASSWORD \
+  synch-cli vault connect \
+    --api-url https://synch.example.com \
+    --vault /data/vault \
+    --vault-id <vault-id>
+```
+
+Then run the remote MCP endpoint behind an HTTPS reverse proxy:
+
+```sh
+docker run --rm \
+  -v synch-data:/data \
+  -e SYNCH_API_URL=https://synch.example.com \
+  -e SYNCH_MCP_ALLOWED_HOSTS=mcp.example.com \
+  -p 127.0.0.1:3000:3000 \
+  synch-cli
+```
+
+Mount `/data` only into this service, and configure the reverse proxy not to
+log the `Authorization` or `X-Synch-Vault-Key` request headers. Override the
+default command to run other CLI operations, for example
+`docker run --rm -v synch-data:/data synch-cli status --vault /data/vault`.
+
 ## Commands
 
 | Command | Description |
@@ -60,7 +115,36 @@ Uninstall with `npm uninstall -g synch-cli`.
 | `synch pull` | Download remote changes; never uploads local changes. |
 | `synch sync` | Reconcile, upload, and download once, then exit. |
 | `synch watch` | Keep syncing (file watcher + realtime) until interrupted; `--on-change` runs a script per detected change. |
+| `synch mcp [--port 3000]` | Serve vault note tools at `http://127.0.0.1:3000/mcp` using MCP Streamable HTTP. |
 | `synch status [--json]` | Show account, vault, and local sync state. |
+
+### MCP server (Streamable HTTP)
+
+```sh
+synch mcp --vault ./notes --port 3000
+```
+
+Point an MCP client at `http://127.0.0.1:3000/mcp`. The server exposes
+`list_notes`, `read_note`, `search_notes`, and `write_note`. Writes are local
+vault edits; run `synch watch` separately when changes should sync remotely.
+
+The endpoint listens only on loopback and validates HTTP `Host` and `Origin`
+headers. Tools accept only syncable Markdown files, reject symlink paths and
+reserved directories, and cap individual note reads and writes at 2 MiB.
+
+For a remote deployment, bind explicitly and configure every public hostname:
+
+```sh
+SYNCH_MCP_ALLOWED_HOSTS=mcp.example.com \
+  synch mcp --host 0.0.0.0 --port 3000 --vault ./notes
+```
+
+Remote requests require both `Authorization: Bearer <Synch session token>` and
+`X-Synch-Vault-Key: <base64 remote vault key>`. The server verifies the session
+against the Synch API, checks that the user can access the connected vault, and
+compares the injected key in constant time. Terminate TLS in front of the
+server and configure the proxy not to log either header. Inject the key through
+the MCP client's secret facility rather than placing it in configuration text.
 
 ### Run a script on changes (`watch`)
 
@@ -115,6 +199,8 @@ environment (`SYNCH_EVENT`, `SYNCH_VAULT`, `SYNCH_API_URL`,
 | `--json` | Machine-readable output for `status`, `vault list`, `vault disconnect`. |
 | `--on-change <file>` | Script to run when `watch` detects changes. |
 | `--on-change-timeout <ms>` | Kill the script after this delay (default 60000, 0 = never). |
+| `--port <port>` | MCP Streamable HTTP port (default `3000`). |
+| `--host <host>` | MCP bind address (default `127.0.0.1`; remote binding enables header authentication). |
 | `-h`, `--help` | Show help. |
 | `-v`, `--version` | Show the CLI version. |
 

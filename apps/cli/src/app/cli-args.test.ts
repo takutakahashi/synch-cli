@@ -19,6 +19,7 @@ describe("resolveCommand", () => {
     expect(resolveCommand(["pull"])).toBe("pull");
     expect(resolveCommand(["sync"])).toBe("sync");
     expect(resolveCommand(["watch"])).toBe("watch");
+    expect(resolveCommand(["mcp"])).toBe("mcp");
     expect(resolveCommand(["status"])).toBe("status");
   });
 
@@ -54,6 +55,13 @@ describe("parseCliArgs", () => {
     expect(values.name).toBe("notes");
     expect(values.vault).toBe("/tmp/notes");
     expect(values.json).toBe(true);
+  });
+
+  it("parses the MCP server port", () => {
+    const { values, positionals } = parseCliArgs(["mcp", "--port", "3210", "--host", "0.0.0.0"]);
+    expect(positionals).toEqual(["mcp"]);
+    expect(values.port).toBe("3210");
+    expect(values.host).toBe("0.0.0.0");
   });
 
   it("turns unknown flags into usage errors", () => {

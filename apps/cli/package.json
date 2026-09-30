@@ -17,15 +17,19 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "chokidar": "^5.0.0"
+    "@modelcontextprotocol/node": "^2.1.0",
+    "@modelcontextprotocol/server": "^2.2.0",
+    "chokidar": "^5.0.0",
+    "zod": "^4.6.5"
   },
   "devDependencies": {
+    "@modelcontextprotocol/client": "^2.2.0",
+    "@synch/sync-client": "workspace:*",
     "@types/node": "^24.0.0",
     "esbuild": "^0.28.0",
     "tsx": "^4.21.0",
-    "vitest": "4.1.4",
     "typescript": "^5.9.3",
-    "@synch/sync-client": "workspace:*"
+    "vitest": "4.1.4"
   },
   "license": "MIT",
   "files": [

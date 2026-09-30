@@ -12,6 +12,8 @@ export const CLI_OPTIONS = {
   "api-url": { type: "string" },
   "on-change": { type: "string" },
   "on-change-timeout": { type: "string" },
+  port: { type: "string" },
+  host: { type: "string" },
   json: { type: "boolean" },
   help: { type: "boolean", short: "h" },
   version: { type: "boolean", short: "v" },
@@ -33,6 +35,7 @@ export type CliCommand =
   | "pull"
   | "sync"
   | "watch"
+  | "mcp"
   | "status";
 
 export function parseCliArgs(
@@ -60,6 +63,7 @@ export function resolveCommand(positionals: string[]): CliCommand | null {
     case "pull":
     case "sync":
     case "watch":
+    case "mcp":
     case "status":
       return positionals.length === 1 ? first : null;
     case "vault":

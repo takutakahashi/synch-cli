@@ -1,0 +1,13 @@
+.git
+.github
+.synch
+**/.synch
+**/node_modules
+**/dist
+coverage
+*.log
+.env
+.env.*
+README.md
+VENDORING.md
+THIRD_PARTY_NOTICES.md
