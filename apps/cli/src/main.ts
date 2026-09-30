@@ -15,6 +15,7 @@ import { runVaultCreate } from "./commands/vault-create";
 import { runVaultDisconnect } from "./commands/vault-disconnect";
 import { runVaultList } from "./commands/vault-list";
 import { runWatch } from "./commands/watch";
+import { runMcp } from "./commands/mcp";
 import { CLI_VERSION } from "./config";
 import { resolveVaultPath } from "./host/paths";
 
@@ -30,6 +31,7 @@ Usage:
   synch pull                                  Download remote changes without uploading local changes
   synch sync                                  Synchronize the vault once and exit
   synch watch [--on-change <script>]          Keep the vault in sync until interrupted
+  synch mcp [--port <port>]                   Serve vault tools over Streamable HTTP
   synch status [--json]                       Show account, vault, and sync state
 
 Options:
@@ -40,6 +42,7 @@ Options:
   --json              Machine-readable output where supported
   --on-change <file>  Script to run (watch only) after vault changes
   --on-change-timeout <ms>  Kill the script after this delay (default 60000, 0 = never)
+  --port <port>        MCP server port (default: 3000)
   -h, --help          Show this help
   -v, --version       Show version
 
@@ -90,6 +93,8 @@ async function main(argv: string[]): Promise<number> {
         return await runSync(ctx);
       case "watch":
         return await runWatch(ctx, { onChange });
+      case "mcp":
+        return await runMcp(ctx, values.port);
       case "status":
         return await runStatus(ctx, values.json === true);
     }

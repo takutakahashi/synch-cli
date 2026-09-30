@@ -10,6 +10,7 @@ synch login                                  # device-code sign-in
 synch vault create --name notes --vault ./notes
 synch sync --vault ./notes                   # one-shot, both directions
 synch watch --vault ./notes                  # keep running until Ctrl+C
+synch mcp --vault ./notes                    # expose notes to MCP clients over HTTP
 ```
 
 - **Read** — `synch pull` downloads remote changes and never uploads.
@@ -60,7 +61,22 @@ Uninstall with `npm uninstall -g synch-cli`.
 | `synch pull` | Download remote changes; never uploads local changes. |
 | `synch sync` | Reconcile, upload, and download once, then exit. |
 | `synch watch` | Keep syncing (file watcher + realtime) until interrupted; `--on-change` runs a script per detected change. |
+| `synch mcp [--port 3000]` | Serve vault note tools at `http://127.0.0.1:3000/mcp` using MCP Streamable HTTP. |
 | `synch status [--json]` | Show account, vault, and local sync state. |
+
+### MCP server (Streamable HTTP)
+
+```sh
+synch mcp --vault ./notes --port 3000
+```
+
+Point an MCP client at `http://127.0.0.1:3000/mcp`. The server exposes
+`list_notes`, `read_note`, `search_notes`, and `write_note`. Writes are local
+vault edits; run `synch watch` separately when changes should sync remotely.
+
+The endpoint listens only on loopback and validates HTTP `Host` and `Origin`
+headers. Tools accept only syncable Markdown files, reject symlink paths and
+reserved directories, and cap individual note reads and writes at 2 MiB.
 
 ### Run a script on changes (`watch`)
 
@@ -115,6 +131,7 @@ environment (`SYNCH_EVENT`, `SYNCH_VAULT`, `SYNCH_API_URL`,
 | `--json` | Machine-readable output for `status`, `vault list`, `vault disconnect`. |
 | `--on-change <file>` | Script to run when `watch` detects changes. |
 | `--on-change-timeout <ms>` | Kill the script after this delay (default 60000, 0 = never). |
+| `--port <port>` | MCP Streamable HTTP port (default `3000`). |
 | `-h`, `--help` | Show help. |
 | `-v`, `--version` | Show the CLI version. |
 
