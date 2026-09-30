@@ -35,3 +35,9 @@ jobs:
               }
             });
           "
+      - name: Build container image
+        run: docker build --tag synch-cli:test .
+      - name: Smoke test the container image
+        run: |
+          docker run --rm synch-cli:test --version
+          docker run --rm --entrypoint node synch-cli:test --version

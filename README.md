@@ -48,6 +48,51 @@ install -m 0755 apps/cli/dist/synch.js ~/.local/bin/synch
 
 Uninstall with `npm uninstall -g synch-cli`.
 
+### Container image
+
+Build the production image locally:
+
+```sh
+docker build -t synch-cli .
+```
+
+The image runs as a non-root user, stores both the local vault and credentials
+under `/data`, and starts the remote MCP server on port 3000 by default. First,
+initialize a named volume against the same Synch server the MCP process will
+use:
+
+```sh
+docker volume create synch-data
+
+docker run --rm -it \
+  -v synch-data:/data \
+  synch-cli login --api-url https://synch.example.com
+
+docker run --rm -it \
+  -v synch-data:/data \
+  -e SYNCH_VAULT_PASSWORD \
+  synch-cli vault connect \
+    --api-url https://synch.example.com \
+    --vault /data/vault \
+    --vault-id <vault-id>
+```
+
+Then run the remote MCP endpoint behind an HTTPS reverse proxy:
+
+```sh
+docker run --rm \
+  -v synch-data:/data \
+  -e SYNCH_API_URL=https://synch.example.com \
+  -e SYNCH_MCP_ALLOWED_HOSTS=mcp.example.com \
+  -p 127.0.0.1:3000:3000 \
+  synch-cli
+```
+
+Mount `/data` only into this service, and configure the reverse proxy not to
+log the `Authorization` or `X-Synch-Vault-Key` request headers. Override the
+default command to run other CLI operations, for example
+`docker run --rm -v synch-data:/data synch-cli status --vault /data/vault`.
+
 ## Commands
 
 | Command | Description |
