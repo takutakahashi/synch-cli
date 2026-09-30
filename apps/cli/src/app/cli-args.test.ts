@@ -58,9 +58,10 @@ describe("parseCliArgs", () => {
   });
 
   it("parses the MCP server port", () => {
-    const { values, positionals } = parseCliArgs(["mcp", "--port", "3210"]);
+    const { values, positionals } = parseCliArgs(["mcp", "--port", "3210", "--host", "0.0.0.0"]);
     expect(positionals).toEqual(["mcp"]);
     expect(values.port).toBe("3210");
+    expect(values.host).toBe("0.0.0.0");
   });
 
   it("turns unknown flags into usage errors", () => {

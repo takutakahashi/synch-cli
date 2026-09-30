@@ -13,6 +13,7 @@ export const CLI_OPTIONS = {
   "on-change": { type: "string" },
   "on-change-timeout": { type: "string" },
   port: { type: "string" },
+  host: { type: "string" },
   json: { type: "boolean" },
   help: { type: "boolean", short: "h" },
   version: { type: "boolean", short: "v" },

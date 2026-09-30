@@ -78,6 +78,20 @@ The endpoint listens only on loopback and validates HTTP `Host` and `Origin`
 headers. Tools accept only syncable Markdown files, reject symlink paths and
 reserved directories, and cap individual note reads and writes at 2 MiB.
 
+For a remote deployment, bind explicitly and configure every public hostname:
+
+```sh
+SYNCH_MCP_ALLOWED_HOSTS=mcp.example.com \
+  synch mcp --host 0.0.0.0 --port 3000 --vault ./notes
+```
+
+Remote requests require both `Authorization: Bearer <Synch session token>` and
+`X-Synch-Vault-Key: <base64 remote vault key>`. The server verifies the session
+against the Synch API, checks that the user can access the connected vault, and
+compares the injected key in constant time. Terminate TLS in front of the
+server and configure the proxy not to log either header. Inject the key through
+the MCP client's secret facility rather than placing it in configuration text.
+
 ### Run a script on changes (`watch`)
 
 `synch watch --on-change <script>` runs a script whenever a sync pass changes
@@ -132,6 +146,7 @@ environment (`SYNCH_EVENT`, `SYNCH_VAULT`, `SYNCH_API_URL`,
 | `--on-change <file>` | Script to run when `watch` detects changes. |
 | `--on-change-timeout <ms>` | Kill the script after this delay (default 60000, 0 = never). |
 | `--port <port>` | MCP Streamable HTTP port (default `3000`). |
+| `--host <host>` | MCP bind address (default `127.0.0.1`; remote binding enables header authentication). |
 | `-h`, `--help` | Show help. |
 | `-v`, `--version` | Show the CLI version. |
 

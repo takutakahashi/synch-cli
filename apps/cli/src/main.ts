@@ -31,7 +31,7 @@ Usage:
   synch pull                                  Download remote changes without uploading local changes
   synch sync                                  Synchronize the vault once and exit
   synch watch [--on-change <script>]          Keep the vault in sync until interrupted
-  synch mcp [--port <port>]                   Serve vault tools over Streamable HTTP
+  synch mcp [--host <host>] [--port <port>]   Serve vault tools over Streamable HTTP
   synch status [--json]                       Show account, vault, and sync state
 
 Options:
@@ -43,6 +43,7 @@ Options:
   --on-change <file>  Script to run (watch only) after vault changes
   --on-change-timeout <ms>  Kill the script after this delay (default 60000, 0 = never)
   --port <port>        MCP server port (default: 3000)
+  --host <host>        MCP bind address (default: 127.0.0.1)
   -h, --help          Show this help
   -v, --version       Show version
 
@@ -94,7 +95,7 @@ async function main(argv: string[]): Promise<number> {
       case "watch":
         return await runWatch(ctx, { onChange });
       case "mcp":
-        return await runMcp(ctx, values.port);
+        return await runMcp(ctx, { port: values.port, host: values.host });
       case "status":
         return await runStatus(ctx, values.json === true);
     }
